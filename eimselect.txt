@@ -1,0 +1,42 @@
+Use Case 1 - Real Time
+Serial No
+Partner Function
+CMAT ID
+Start Date 
+End Date
+Action - Assigned and Expire 
+
+
+Use Case 2 - batch 
+Serial No
+Status
+
+User Case 3 - Head Swap - Batch 
+ZSNLT_ENTL_TRANS
+
+User Case 4 - Contact Batch 
+
+User Case 5 - Metro Cluster (Batch)
+
+User Case 6 - Master Blaster  (Batch)
+
+User Case 7 - System ID, System Model 
+Serial Number
+Partner Serial No
+System ID
+Product Category 
+Product Line / Model
+
+Model 
+Os Version
+Hostname
+
+
+User Case 8 - Batch 
+Serial No
+Product Category 
+
+
+
+
+
