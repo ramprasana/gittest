@@ -7,7 +7,7 @@ End Date
 Action - Assigned and Expire 
 
 
-Use Case 2 - batch 
+Use Case 2 - Batch 
 Serial No
 Status
 
@@ -16,7 +16,7 @@ ZSNLT_ENTL_TRANS
 
 User Case 4 - Contact Batch 
 
-User Case 5 - Metro Cluster (Batch)
+User Case 5 - Metro Cluster (Batch) - Need to check with ASUP team
 
 User Case 6 - Master Blaster  (Batch)
 
