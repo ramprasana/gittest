@@ -1,0 +1,92 @@
+window.checkLocaleLink = function() {};
+
+(function() {
+
+var COUNTRY_SELECTOR_COOKIE_NAME = "SelectedCountryPath";
+var COUNTRY_REDIRECT_FLAG = "CountryRedirectFlag";
+var CookieDomain = ".sap.com";
+
+function get_cookie(name) {
+    
+    var cookies = document.cookie.split("; ");
+    for (var i = 0; i < cookies.length; i++) {
+        var nvp = cookies[i].split("=");
+        if (name == nvp[0])
+            return nvp[1];
+    }
+
+    return null;
+}
+
+function set_cookie(name, value, expdays) {
+    var domain = "";
+
+    if (typeof CookieDomain != "undefined")
+        domain = CookieDomain;
+
+    if (domain == "" && location.hostname.indexOf("sap.com") > -1)
+        domain = "";
+
+    var cv = name + "=" + value + "; path=/";
+
+    if (domain != "")
+        cv += "; domain=" + domain;
+
+    var expdate = new Date();
+    expdate.setDate(expdate.getDate() + expdays);
+    cv += ((expdays == null) ? "" : "; expires=" + expdate.toUTCString());
+
+    document.cookie = cv;
+}
+
+function get_current_country() { return get_cookie(COUNTRY_SELECTOR_COOKIE_NAME); }
+function set_current_country(country) { set_cookie(COUNTRY_SELECTOR_COOKIE_NAME, country, 365); }
+
+function have_country_redirect_flag() {
+    var v = get_cookie(COUNTRY_REDIRECT_FLAG);
+    return v && v.length > 0;
+}
+
+function set_country_redirect_flag() {
+    set_cookie(COUNTRY_REDIRECT_FLAG, "1");
+}
+
+function checkCountryRedirect() {
+  //only check the redirect on the home page
+  
+  if (window.location.pathname.toUpperCase() != "/INDEX.HTML")  
+ 	  return;
+
+  if (have_country_redirect_flag())
+    return;
+  
+  var countryPath = get_current_country();
+
+  if (countryPath) {
+     set_country_redirect_flag(); //session cookie
+
+     window.location.href = countryPath;
+  }
+}
+
+function setCountryRedirectInfo(countryPath) {
+  set_current_country(countryPath);
+  set_country_redirect_flag();
+
+  //window.location.href = countryPath;
+}
+
+//window.checkCountryRedirect = checkCountryRedirect;
+//window.setCountryRedirect = setCountryRedirect;
+
+$(document).ready(function() {
+
+  setTimeout(checkCountryRedirect, 100);
+  
+	$(".countryselector-countries a[data-locale-code]").click(function() { 
+		setCountryRedirectInfo(this.href);
+	});
+
+});
+
+})();

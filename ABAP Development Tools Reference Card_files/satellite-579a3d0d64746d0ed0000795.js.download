@@ -1,0 +1,356 @@
+var useNewLiveEngageScript = true;
+
+var defaultSite = 'Global / USA';
+
+var siteMappings = {
+    'Global / USA': 'us',
+    'Canada': 'ca',
+    'Canada (French)': 'ca',
+    'Australia': 'anz',
+    'Sea': 'sea',
+    'India': 'in',
+    'Africa': 'za',
+    'Mena': 'mena',
+    'UK': 'uk',
+    'Latinamerica': 'lac',
+    'Brazil': 'br',
+    'Italy': 'it',
+    'Spain': 'es',
+    'Portugal': 'pt',
+    'France': 'fr',
+    'Norway': 'no',
+    'Denmark': 'dk',
+    'Sweden': 'se',
+    'Finland': 'fl',
+    'Estonia': 'bal',
+    'Latvia': 'bal',
+    'Lithuania': 'bal',
+    'Belgium': 'be',
+    'Belgium & Luxembourg (French)': 'be',
+    'Netherlands': 'nl',
+    'Turkey': 'tr',
+
+    'Germany': 'de',
+    'Poland': 'pl',
+    'Austria': 'at',
+    'Cis': 'cis',
+    'Switzerland': 'ch',
+    'Switzerland (French)': 'ch',
+
+    'China': 'cn',
+    'HongKong': 'hk',
+    'Korea': 'kr',
+    'Taiwan': 'tw',
+    'Japan': 'jp',
+
+    'Community': 'us',
+    'Careers': 'us',
+
+    'Czechrepublic': 'cz'
+};
+
+function lp_getCurrentSite() {
+    var siteIDs = $('meta[name=web_site_identifier]');
+
+    if (siteIDs && siteIDs.length >= 2) {
+        for (var i = 0; i < siteIDs.length; i++) {
+            var content = $(siteIDs[i]).attr('content');
+            if (content && content != 'Careers' && content != 'Community')
+                return content;
+        }
+    }
+
+    return siteIDs.attr('content');
+}
+
+var liveEngageRules = {
+    'Czechrepublic': function () {
+        var url = window.location.href.toUpperCase();
+        return url.indexOf("/ABOUT/CAREERS") >= 0;
+    }
+};
+
+var currentSite = lp_getCurrentSite() || defaultSite;
+
+useNewLiveEngageScript = useNewLiveEngageScript && (currentSite in siteMappings);
+
+var lp_country = siteMappings[currentSite] || 'us';
+
+if (liveEngageRules[currentSite]) {
+    if (!liveEngageRules[currentSite]()) {
+        useNewLiveEngageScript = false;
+    }
+}
+
+if (useNewLiveEngageScript) {
+    if (SAP && SAP.DTM && SAP.DTM.runMode) {
+        SAP.DTM.LivePerson = SAP.DTM.LivePerson || {};
+
+        SAP.DTM.LivePerson.accountID = "81933160"; //"60962385";
+    }
+
+    if (SAP && SAP.DTM && SAP.DTM.pageComponents && SAP.DTM.pageComponents.indexOf("sapdx/components/modular/contactModule") >= 0) {
+
+        SAP && SAP.DTM && SAP.DTM.addScript && SAP.DTM.addScript({
+            ids: ["liveEngage"],
+            nativeScript: function () {
+
+                var lp_language = SAP.DTM.LivePerson.languageWithDefault || "en";
+
+                // Force variables' values to lower case
+                SAP.DTM.LivePerson.arrLPvars.forEach(function (v) {
+                    if (v.name !== 'WBSCode') {
+                        v.value = v.value.toLowerCase();
+                    }
+                });
+
+                var collectionValue;
+
+                SAP.DTM.LivePerson.arrLPvars.forEach(function (v) {
+                    if (v.name === 'Collection') {
+                        collectionValue = v.value;
+                    }
+                });
+
+                var lpTag = lpTag || {}, lpMTagConfig = lpMTagConfig || {}; lpTag.vars = lpTag.vars || []; lpTag.dbs = lpTag.dbs || [];
+
+                lpTag.site = SAP.DTM.LivePerson.accountID;
+                lpTag.tagletSection = 'sap';
+                lpTag.section = ['sap', collectionValue || 'general', lp_country, lp_language];
+
+
+                // ---------- i: Sending variable array when the page loads --------------
+                lpTag.vars.push(SAP.DTM.LivePerson.arrLPvars);
+
+                // ======================= DYNAMIC BUTTONS ============================
+                // Define a default dynamic button on the page, specifying the following parameters
+                //   name: the name of the dynamic button in the LivePerson Admin Console
+                //   pid: the id of the div that the button will be injected into
+                //lpTag.dbs.push({ name: 'chat-sales-sap-general-" + SAP.DTM.LivePerson.countryWithDefault + "-" + SAP.DTM.LivePerson.languageWithDefault + "-1', pid: 'lpChatButtonDiv1' });
+                //lpTag.dbs.push({ name: 'voice-sales-sap-general-" + SAP.DTM.LivePerson.countryWithDefault + "-" SAP.DTM.LivePerson.languageWithDefault + "-1', pid: 'lpVoiceButtonDiv1' });
+
+                $(".contact-module div.chat").removeClass("online").addClass("offline");
+                window.lp_engagementImpressionHandler = function () {
+
+                    if (typeof (LPMobile) === "undefined") {
+                        var available = $(".contact-module .chat #lpChatButtonDiv1 div").hasClass("lp-agent-available")
+
+                        if (available) {
+                            $(".contact-module div.chat").removeClass("offline").addClass("online");
+                        } else {
+                            $(".contact-module div.chat").removeClass("online").addClass("offline");
+                        }
+                    }
+
+                    $('div.chat.online a').on('click', function () {
+                        $(".contact-module .chat #lpChatButtonDiv1 .lp-agent-available").trigger('click');
+                    });
+
+                }
+
+                //Video
+                $(function () {
+
+                    function videoStart() {
+                        lpTag.newPage && lpTag.newPage(window.location.href, {
+                            section: ["sap", collectionValue || "general", lp_country, "exclude", lp_language],
+                            sdes: [],
+                            taglets: {
+                                rendererStub: {
+                                    "divIdsToKeep": {
+                                        "lpChatButtonDiv1": true
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    function videoStop() {
+                        lpTag.newPage && lpTag.newPage(window.location.href, {
+                            section: ["sap", collectionValue || "general", lp_country, lp_language],
+                            sdes: [],
+                            taglets: {
+                                rendererStub: {
+                                    "divIdsToKeep": {
+                                        "lpChatButtonDiv1": true
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    $("video").on("play", null, function () {
+                        videoStart();
+                    });
+
+                    $("video").on("pause", null, function () {
+                        videoStop();
+                    });
+
+                });
+            }
+        });
+
+        SAP && SAP.DTM && SAP.DTM.addScript && SAP.DTM.addScript({
+            ids: ["mtag"],
+            nativeScript: function () {
+                $(function () {
+
+                    window.lpTag = window.lpTag || {}, "undefined" == typeof window.lpTag._tagCount ? (window.lpTag = {
+                        site: lpTag.site || "",
+                        section: lpTag.section || "",
+                        tagletSection: lpTag.tagletSection || null,
+                        autoStart: lpTag.autoStart !== !1,
+                        ovr: lpTag.ovr || {},
+                        _v: "1.7.0",
+                        _tagCount: 1,
+                        protocol: "https:",
+                        events: {
+                            bind: function (t, e, i) {
+                                lpTag.defer(function () {
+                                    lpTag.events.bind(t, e, i)
+                                }, 0)
+                            },
+                            trigger: function (t, e, i) {
+                                lpTag.defer(function () {
+                                    lpTag.events.trigger(t, e, i)
+                                }, 1)
+                            }
+                        },
+                        defer: function (t, e) {
+                            0 == e ? (this._defB = this._defB || [], this._defB.push(t)) : 1 == e ? (this._defT = this._defT || [], this._defT.push(t)) : (this._defL = this._defL || [], this._defL.push(t))
+                        },
+                        load: function (t, e, i) {
+                            var n = this;
+                            setTimeout(function () {
+                                n._load(t, e, i)
+                            }, 0)
+                        },
+                        _load: function (t, e, i) {
+                            var n = t;
+                            t || (n = this.protocol + "//" + (this.ovr && this.ovr.domain ? this.ovr.domain : "lptag.liveperson.net") + "/tag/tag.js?site=" + this.site);
+                            var a = document.createElement("script");
+                            a.setAttribute("charset", e ? e : "UTF-8"), i && a.setAttribute("id", i), a.setAttribute("src", n), document.getElementsByTagName("head").item(0).appendChild(a)
+                        },
+                        init: function () {
+                            this._timing = this._timing || {}, this._timing.start = (new Date).getTime();
+                            var t = this;
+                            window.attachEvent ? window.attachEvent("onload", function () {
+                                t._domReady("domReady")
+                            }) : (window.addEventListener("DOMContentLoaded", function () {
+                                t._domReady("contReady")
+                            }, !1), window.addEventListener("load", function () {
+                                t._domReady("domReady")
+                            }, !1)), "undefined" == typeof window._lptStop && this.load()
+                        },
+                        start: function () {
+                            this.autoStart = !0
+                        },
+                        _domReady: function (t) {
+                            this.isDom || (this.isDom = !0, this.events.trigger("LPT", "DOM_READY", {
+                                t: t
+                            })), this._timing[t] = (new Date).getTime()
+                        },
+                        vars: lpTag.vars || [],
+                        dbs: lpTag.dbs || [],
+                        ctn: lpTag.ctn || [],
+                        sdes: lpTag.sdes || [],
+                        ev: lpTag.ev || []
+                    }, lpTag.init()) : window.lpTag._tagCount += 1;
+
+                    lpTag.events.bind("lpUnifiedWindow", "state", function () {
+                        var deviceType = lpTag.device.familyName();
+                        function forceDesktop() {
+                            $("#lpChat").parent().removeClass("lp_tablet lp_portrait");
+                            $("#lpChat").parent().addClass("lp_desktop lp_landscape");
+                            $("#lpChat .lp_icon-white img").attr("src", "https://lpcdn.lpsnmedia.net/le_unified_window/8.4.0.1-release_1917/resources/icons/desktop/sprites_v1.png");
+
+                            /*var parentDiv = document.getElementById("lpChat").parentNode; //without jquery
+                            parentDiv.classList.remove("lp_tablet");
+                            parentDiv.classList.remove("lp_portrait");
+                            parentDiv.classList.add("lp_landscape");
+                            parentDiv.classList.add("lp_desktop");*/
+                        }
+                        if (/Tablet/.test(deviceType)) {
+                            forceDesktop();
+                        }
+                    });
+
+                    lpTag.events.bind("LP_OFFERS", "OFFER_IMPRESSION", function () {
+                        try {
+                            var payload = { "events": "event41", "eVar47": "Proactive Chat", "prop44": "LivePerson|Chat invitation displayed" };
+                            //s_lp.track(payload,"tl_o","LivePerson");
+                        } catch (e) {
+                            console.log("Invitation Start Failure: " + e);
+                        }
+                    });
+
+                    lpTag.events.bind("LP_OFFERS", "OFFER_CLICK", function () {
+                        try {
+                            var payload = { "events": "event23", "eVar47": "Proactive Chat", "prop44": "LivePerson|Chat invitation accepted" };
+                            //s_lp.track(payload,"tl_o","LivePerson");
+                        } catch (e) {
+                            console.log("Invitation Accept Failure: " + e);
+                        }
+                    });
+
+                    lpTag.events.bind("LP_OFFERS", "OFFER_DECLINED", function () {
+                        try {
+                            var payload = { "events": "event23", "eVar47": "Proactive Chat", "prop44": "LivePerson|Chat invitation declined" };
+                            //s_lp.track(payload,"tl_o","LivePerson");
+                        } catch (e) {
+                            console.log("Invitation Declined Failure: " + e);
+                        }
+                    });
+
+                    lpTag.events.bind("LP_OFFERS", "OFFER_IMPRESSION", function (data, eventInfo) {
+                        try {
+                            if (data.engagementType == 5) {
+                                if (window.lp_engagementImpressionHandler) {
+                                    window.lp_engagementImpressionHandler();
+                                }
+                            }
+                        } catch (e) {
+                            console.log("Error on Offer Impression: " + e);
+                        }
+                    });
+
+                    lpTag.events.bind("LP_OFFERS", "OFFER_TIMEOUT", function () {
+                        try {
+                            var payload = { "events": "event23", "eVar47": "Proactive Chat", "prop44": "LivePerson|Chat invitation timed out" };
+                            //s_lp.track(payload,"tl_o","LivePerson");
+                        } catch (e) {
+                            console.log("Invitation Timeout Failure: " + e);
+                        }
+                    });
+                });
+            }
+        });
+
+    }
+
+}
+
+if (!useNewLiveEngageScript) {
+    $ && $('.contact-module div.chat').hide();
+
+    if (SAP && SAP.DTM && SAP.DTM.runMode) {
+        SAP.DTM.LivePerson = SAP.DTM.LivePerson || {};
+
+        SAP.DTM.LivePerson.accountID = "";
+    }
+
+    if (SAP && SAP.DTM && SAP.DTM.pageComponents && SAP.DTM.pageComponents.indexOf("sapdx/components/modular/contactModule") >= 0) {
+        SAP && SAP.DTM && SAP.DTM.addScript && SAP.DTM.addScript({
+            ids: ["liveEngage"],
+            nativeScript: function () {
+            }
+        });
+
+        SAP && SAP.DTM && SAP.DTM.addScript && SAP.DTM.addScript({
+            ids: ["mtag"],
+            nativeScript: function () {
+            }
+        });
+    }
+}

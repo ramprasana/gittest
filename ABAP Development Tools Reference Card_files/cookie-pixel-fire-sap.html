@@ -1,0 +1,57 @@
+
+<!-- saved from url=(0069)https://cti.w55c.net/ct/cookie-pixel-fire-sap.html?check_cookie=false -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <script src="./cookie-pixel-lib.js.download"> </script>
+  <script type="text/javascript">
+    /** Master function to fire pixels based on presence of DX cookie */
+    var dxCookieUpx = function() {
+      var dxCookieName = "wfivefivec";      // Name of DX cookie
+      var checkCookieKey = "check_cookie";
+      var setFrequencyKey = "set_freq"
+      var freqPixelId = 'f01a8343113b438590b766b8146e7b5a';
+
+      setFrequencyValue = getParameterByName(setFrequencyKey);
+      setFrequency = setFrequencyValue.toLowerCase() === "true";
+      
+      if( setFrequency ){
+        updateFrequency(freqPixelId, 15);
+        return;
+      }
+
+      setCookies();     // Set any cookies specified in query string.
+
+      var checkCookieValue = getParameterByName(checkCookieKey);
+      var checkCookie = checkCookieValue.toLowerCase() == "true";
+      var dxCookie = getCookie(dxCookieName);
+
+      // If there is no DX cookie, and we care about that, exit
+      if( dxCookie === null && checkCookie ) {
+        return;
+      }
+
+      if(dxCookie === null) {
+        dxCookie = setDxCookie();
+      }
+
+      // Added to make sure #hashtag are included in URLs passed to this iframe
+      var callingUrl = document.referrer;
+      var hashtagParam = getParameterByName('loc_hashtag');
+
+      if( hashtagParam != '' ){
+        callingUrl += encodeURIComponent(hashtagParam); // Encode to preserve # param in chrome
+      }
+
+      var serviceParams = "w55c=" + dxCookie;
+      serviceParams += "&calling_url=" + callingUrl;
+      var endpoint = 'https://ust-servlet.dataxu.net/sapustservlet';
+      callPixelServiceGet( endpoint, serviceParams );
+    };
+
+    dxCookieUpx();
+
+  </script>
+</head>
+<body>
+
+
+</body></html>

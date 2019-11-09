@@ -1,0 +1,9 @@
+var analyticsParamsWrapper=$(".analyticsParamsWrapper");
+var analyticsParams=!!analyticsParamsWrapper?analyticsParamsWrapper.data("analytics-params"):{};
+if(!!window.s){initParams(window.s)
+}else{if(!!window.sap){initParams(window.sap)
+}else{window.sap={};
+initParams(window.sap)
+}}function initParams(a){$.each(analyticsParams||{},function(b,c){a[b]=c
+})
+};

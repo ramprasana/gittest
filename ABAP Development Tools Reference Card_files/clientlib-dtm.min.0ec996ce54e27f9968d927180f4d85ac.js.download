@@ -1,0 +1,20 @@
+(function(){window.SAP=window.SAP||{};
+SAP.DTM=SAP.DTM||{};
+SAP.DTM.scripts=SAP.DTM.scripts||[];
+SAP.DTM.hasScript=function(a){return $(SAP.DTM.scripts).filter(function(){return this.ids.indexOf(a)>=0
+})[0]
+};
+SAP.DTM.addScript=function(a){SAP.DTM.scripts.push(a);
+a.invoke=function(){try{a.nativeScript.call(this,arguments)
+}catch(b){this.error=b
+}};
+a.inline=function(){$("<script>"+a.nativeScript.toString().replace(/function(.*)\n/,"").replace(/}$/,"")+"<\/script>").appendTo($("head"))
+}
+};
+SAP.DTM.getScript=function(b){var a=SAP.DTM.hasScript(b);
+if(a){return a
+}else{return{ids:[b],invoke:function(){console.error("There is no script '"+b+"'")
+},inline:function(){console.error("There is no script '"+b+"'")
+}}
+}}
+})();

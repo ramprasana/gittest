@@ -1,0 +1,32 @@
+var lpTag = lpTag || {};
+lpTag.sdes = lpTag.sdes || [];
+
+function ledemandbaseCallback(obj) {
+    console && console.log("callback from demandbase to invoke liveengage logic:", obj);
+
+    lpTag.sdes.push({
+        "type": "ctmrinfo",
+        "info": {
+            "accountName": obj["company_name"],
+            "cstatus": obj["watch_list"] && obj["watch_list"]["account_status"] || "",
+            "companySize": obj["annual_sales"] || 0
+        }
+    });
+
+    if (obj["company_name"] && obj["company_name"].toUpperCase().indexOf("SAP") >= 0) {
+        lpTag.sdes.push({
+            "type": "mrktInfo",
+            "info": {
+                "affiliate": obj["company_name"]
+            }
+        });
+    }
+}
+
+$(document).ready(function () {
+    var ledbscript = document.createElement("SCRIPT");
+    ledbscript.async = true;
+    ledbscript.src = "https://api.demandbase.com/api/v2/ip.json?key=344c8b40e92227af3765320635a83926&var=dbInfo&callback=ledemandbaseCallback&query=";
+    document.getElementsByTagName("head")[0].appendChild(ledbscript);
+});
+

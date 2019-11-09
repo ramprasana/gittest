@@ -1,0 +1,227 @@
+(function() {
+
+/*
+* firePixel()
+* V3.
+* This version adds functionality so that now you can check
+* whether the wfivefivec cookie is set, and you can also specify
+* the names of other cookies to be set on the cti.w55c.net domain.
+* This version creates an iframe which sources some html
+* and javascript hosted on http://cti.w55c.net.
+*
+* @param <String> pixelIds - the pixel pixel ids to fire, comma seperated.
+* @param <Boolean> checkCookie - whether to only fire the pixel if the wfivefivec cookie is set.
+* @param <String> setCookies - an array of names of cookies to set.
+* @see https://github.com/dataxu/ust/blob/master/html/cookie-pixel-fire.html
+*/
+var firePixel = function(checkCookie, setCookies) {
+  // Serve the Iframe from the secure or regular w55c domains depending on sourced protocol
+  var iframeDomain = '//cti.w55c.net';
+  var iframeUrl = iframeDomain + '/ct/cookie-pixel-fire-sap.html';
+
+  var iframe = document.createElement('iframe');
+  var iframeSrc = iframeUrl + '?check_cookie=';
+  iframeSrc += checkCookie ? 'true' : 'false';
+
+  // If there are cookies in the cookieSet array put them into the query string
+  // with comma delimiters
+  if(setCookies && setCookies.length > 0) {
+    var cookieList = setCookies[0];
+    for(var i = 1; i < setCookies.length; i++) {
+      cookieList += ',' + setCookies[i];
+    }
+
+    iframeSrc += '&set_cookies=' + cookieList;
+  }
+
+  // Added to make sure #hashtag are included in URLs passed to this iframe
+  var hashtag = window.location.hash;
+  if( hashtag !== "" ){
+    iframeSrc += "&loc_hashtag=" + encodeURIComponent(hashtag);  // '#' must be encoded
+  }
+
+  iframe.setAttribute('src', iframeSrc);
+  iframe.style.width = '1px';
+  iframe.style.height = '1px';
+  iframe.style.display = "none";
+  iframe.style.visibility = "hidden";
+  document.body.appendChild(iframe);
+};
+
+/** Return true if the URL contains any of the URIs in the countryURIs array */
+var urlContainsCountryUri = function() {
+  for(var i = 0; i < countryUris.length; i++ ) {
+    var countryStr = "/" + countryUris[i] + "/";
+    if(location.toString().toLowerCase().indexOf(countryStr) > -1) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/* Main function to fire pixel based on matching the current URL to the URL Map */
+var dxUpx = function() {
+  // the default case is not to check if wfivefivec is set.
+  var checkCookie = false;
+  var setCookies = [];
+
+  // If the URL contains one of the country URIs we need to check to see if
+  // the wfivefivec cookie exists, and only then fire the pixel
+  if(urlContainsCountryUri()) {
+    checkCookie = true;
+  }
+
+  if(appNexusMap.hasOwnProperty(location.href)) {
+    var imageSources = appNexusMap[location.href];
+    for(var i = 0; i < imageSources.length; i++) {
+      var img = document.createElement('img');
+      img.src = imageSources[i];
+    }
+  }
+
+  firePixel(checkCookie, setCookies);
+};
+
+// List of URIs / Dirs in the URL that reflect a URL where special conditions apply:
+// I.e. only fire a pixel if dx cookie already exists.
+var countryUris = [
+  "belgique",
+  "belgie",
+  "bulgaria",
+  "croatia",
+  "cz",
+  "denmark",
+  "estonia",
+  "finland",
+  "france",
+  "greece",
+  "hungary",
+  "italy",
+  "latvia",
+  "lithuania",
+  "netherlands",
+  "poland",
+  "portugal",
+  "romania",
+  "sk",
+  "slovenia",
+  "spain",
+  "sweden",
+  "uk"
+];
+
+var appNexusMap = {
+  'http://discover.sap.com/hana/es-es' : [
+    'https://secure.adnxs.com/seg?add=3599964&t=2'
+  ],
+  'http://discover.sap.com/hana/en-za' : [
+    'https://secure.adnxs.com/seg?add=3599965&t=2',
+    'https://secure.adnxs.com/seg?add=3599966&t=2',
+    'https://secure.adnxs.com/seg?add=3599986&t=2'
+  ],
+  'http://discover.sap.com/hana/en-me' : [
+    'https://secure.adnxs.com/seg?add=3599975&t=2',
+    'https://secure.adnxs.com/seg?add=3599983&t=2'
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr08/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876815&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-simple/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876818&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr02/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876819&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xe15-1fi-sip-st1/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876820&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-planning/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876821&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-grc/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876822&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-treasury/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876823&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-operations/index.html" : [
+    "https://secure.adnxs.com/seg?add=3876825&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr08/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-IDC-Report_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876827&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-simple/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-SimpleFinance_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876828&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr02/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-HBR-Report_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876832&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xe15-1fi-sip-st1/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-SimplifiedPlanning_T1_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876833&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-planning/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-SimplifiedPlanning_T2_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876838&t=2"
+  ],
+  "https://go.sap.com/cmp/dg/crm-xj15-lob-fi-sgrcach/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-SimpleGRC_T1_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876840&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-grc/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-SimpleGRC_T2_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876841&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-treasury/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-Treasury_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876843&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-operations/index.html?campaigncode=CRM-XJ15-LOB-FI_TR09DX&source=onlinedisplay-EMEA-DataXu-FutureOfFinanceOps_RunSimple" : [
+    "https://secure.adnxs.com/seg?add=3876847&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-grc/typ.html" : [
+    "https://secure.adnxs.com/px?id=628259&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-operations/typ.html" : [
+    "https://secure.adnxs.com/px?id=628260&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-planning/typ.html" : [
+    "https://secure.adnxs.com/px?id=628261&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-simple/typ.html" : [
+    "https://secure.adnxs.com/px?id=628262&t=2"
+  ],
+  "https://go.sap.com/cmp/ppc/finance-treasury/typ.html" : [
+    "https://secure.adnxs.com/px?id=628263&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xe15-1fi-sip-st1/typ.html" : [
+    "https://secure.adnxs.com/px?id=628264&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr02/typ.html" : [
+    "https://secure.adnxs.com/px?id=628265&t=2"
+  ],
+  "https://www.sap.com/cmp/dg/crm-xj15-lob-fi-tr08/typ.html" : [
+    "https://secure.adnxs.com/px?id=628266&t=2"
+  ],
+  "http://discover.sap.com/hana/en-me/customer-reviews-stories.htmlCRM-XV15-1IT-SMOD_SOMP1" : [
+    "https://secure.adnxs.com/px?id=644291&t=2"
+  ],
+  "http://discover.sap.com/hana/en-za/customer-reviews-stories.htmlCRM-ZA15-1IT-SMOD_SOMP1" : [
+    "https://secure.adnxs.com/px?id=644293&t=2"
+  ],
+  "http://discover.sap.com/hana/en-za?source=onlinedisplay-KE-PaidDesktop_HITA-2015_Run_Simple_Platform-LP-KE_HITA&campaigncode=CRM-ZA15-1IT-SMOD_SOMM": [
+    "https://secure.adnxs.com/px?id=645468&t=2"
+  ],
+  "http://discover.sap.com/hana/en-za?source=onlinedisplay-NG-PaidDesktop_HITA-2015_Run_Simple_Platform-LP-NG_HITA&campaigncode=CRM-ZA15-1IT-SMOD_SOMM": [
+    "https://secure.adnxs.com/px?id=645469&t=2"
+  ],
+  "http://discover.sap.com/hana/en-me?source=onlinedisplay-SA-PaidDesktop_HITA-2015_Run_Simple_Platform-LP-SA_HITA&campaigncode=CRM-SA15-1IT-SMOD_SOMM": [
+    "https://secure.adnxs.com/px?id=645472&t=2"
+  ],
+  "http://discover.sap.com/hana/en-me?source=onlinedisplay-XV-PaidDesktop_HITA-2015_Run_Simple_Platform-LP-XV_HITA&campaigncode=CRM-XV15-1IT-SMOD_SOMM": [
+    "https://secure.adnxs.com/px?id=645470&t=2"
+  ],
+  "http://discover.sap.com/hana/en-za?source=onlinedisplay-ZA-PaidDesktop_HITA-2015_Run_Simple_Platform-LP-ZA_HITA&campaigncode=CRM-ZA15-1IT-SMOD_SOMM": [
+    "https://secure.adnxs.com/px?id=645471&t=2"
+  ]
+};
+
+dxUpx();
+
+}());

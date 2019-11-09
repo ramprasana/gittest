@@ -1,0 +1,31 @@
+(function() {
+
+ var POPUP_ELEMENT_NAME = '.js-idspopup';
+
+ $(document).ready(function() {
+   setTimeout(function(){
+
+     if ($(POPUP_ELEMENT_NAME).length  == 0) return; 
+     if (navigator.userAgent.toLowerCase().indexOf("firefox") < 0 && navigator.userAgent.toLowerCase().indexOf("trident") < 0) return;
+     if (!$._data) return;
+
+     var handlers = $._data( $(POPUP_ELEMENT_NAME).get(0), "events" )["click"];
+     if (handlers.length > 1) return;
+
+     $(POPUP_ELEMENT_NAME).on('click', function() {
+         try {
+  	    $(this).idsPopup({
+		placement: 'bottomCenter', 
+		showCloseBut: !1, 
+		onDocumentClickClose: !0, 
+		onOkBut: function () {},
+		onCancelBut: function () {},          
+		onLoad: function () {}, 
+		onClose: function () {}        
+   	    });
+         } catch (e) {}
+    });
+  }, 0); 
+});
+
+})();
